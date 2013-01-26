@@ -1,3 +1,5 @@
+@import "compass/reset";
+
 //styles go here
 
 //color definitions
@@ -9,4 +11,14 @@ $highlight: #00FF00;
 body {
   color: $text;
   background-color: $background;
+}
+
+fieldset {
+  padding: 50px 100px 100px 50px;
+}
+
+input[type="text"]
+{
+    background: transparent;
+    border: none;
 }

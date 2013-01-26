@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Live input record and playback</title>
+		<link rel="stylesheet" type="text/css" href="../../css/animate.css" media="screen" />
+		<style type='text/css'>
+			ul {
+				list-style: none;
+			}
+			#recordingslist audio {
+				display: block;
+				margin-bottom: 10px;
+			}
+		</style>
+	</head>
+	<body>
+		<button onclick="startRecording(this);">
+			record
+		</button>
+		<button onclick="stopRecording(this);" disabled>
+			stop
+		</button>
+		<ul id="recordingslist"></ul>
+		<pre id="log"></pre>
+		<script>
+			var words = ["Color", "my", "life", "with", "the", "chaos", "of", "trouble."];
+			var syllables = [2, 1, 1, 1, 1, 2, 1, 2];
+			function __log(e, data) {
+				log.innerHTML += "\n" + e + " " + (data || '');
+			}
+
+			var audio_context;
+			var recorder;
+			function startUserMedia(stream) {
+				var input = audio_context.createMediaStreamSource(stream);
+				__log('Media stream created.');
+				input.connect(audio_context.destination);
+				__log('Input connected to audio context destination.');
+				recorder = new Recorder(input);
+				__log('Recorder initialised.');
+			}
+
+			function startRecording(button) {
+				recorder && recorder.record();
+				button.disabled = true;
+				button.nextElementSibling.disabled = false;
+				__log('Recording...');
+			}
+
+			function stopRecording(button) {
+				recorder && recorder.stop();
+				button.disabled = true;
+				button.previousElementSibling.disabled = false;
+				__log('Stopped recording.');
+				// create WAV download link using audio data blob
+				createDownloadLink();
+				recorder.clear();
+			}
+
+			function createDownloadLink() {
+				recorder && recorder.exportWAV(function(blob) {
+					var url = URL.createObjectURL(blob);
+					var li = document.createElement('li');
+					var au = document.createElement('audio');
+					var hf = document.createElement('a');
+					au.controls = true;
+					au.src = url;
+					hf.href = url;
+					hf.download = new Date().toISOString() + '.wav';
+					hf.innerHTML = hf.download;
+					li.appendChild(au);
+					li.appendChild(hf);
+					recordingslist.appendChild(li);
+					// get arraybuffer
+					var request = new XMLHttpRequest();
+					request.open("GET", url, true);
+					request.responseType = "arraybuffer";
+					// Our asynchronous callback
+					request.onload = function() {
+						var audioData = request.response;
+						//console.log(audioData);
+						audioGraph(audioData);
+					}
+					request.send();
+				});
+			}
+
+			function audioGraph(audioData) {
+				var volumeNode, lowPassFilter;
+				// Same setup as before
+				soundSource = audio_context.createBufferSource();
+				soundBuffer = audio_context.createBuffer(audioData, true);
+				soundSource.buffer = soundBuffer;
+				findPitch(soundBuffer);
+				soundArray = soundBuffer.getChannelData(0);
+				amplitude(soundArray);
+			}
+
+			function amplitude(soundArray) {
+				// get total number of syllables
+				var syllablesTotal = 0;
+				for (var i = 0; i < syllables.length; i++)
+					syllablesTotal = syllablesTotal + syllables[i];
+				// get size of a chunk of soundArray by dividing soundArray into syllables
+				var syllableArraySize = soundArray.length / syllablesTotal;
+				var wordStart = 0;
+				// loop through soundArray to process each part
+				for (var i = 0; i < words.length; i++) {
+					// get length of chunk
+					var word = words[i];
+					var wordArraySize = syllableArraySize * syllables[i];
+					// wordArraySize is about 10000 - 25000 for like 3-10 seconds
+					// get the chunk of soundArray for this word
+					var wordArray = soundArray.subarray(wordStart, wordStart + wordArraySize);
+					wordStart = wordStart + wordArraySize;
+					//console.log(word+" "+wordArray.length + " starting from "+wordStart);
+					// get the average of this array
+					var sum = 0;
+					for (var j = 0; j < wordArray.length; j++) {
+						sum = sum + Math.abs(wordArray[j]);
+					}
+					var average = sum / wordArray.length;
+					// normalize average
+					var naverage = average * 10000 + 20;
+					//console.log(word + " " + naverage);
+					$('body').append("<div class=\"animated bounce\" style=\"font-size: " + naverage + "px\">" + word + "</div>");
+				}
+			}
+
+
+			window.onload = function init() {
+				try {
+					// webkit shim
+					window.AudioContext = window.AudioContext || window.webkitAudioContext;
+					navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+					window.URL = window.URL || window.webkitURL;
+					audio_context = new AudioContext;
+					__log('Audio context set up.');
+					__log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+				} catch (e) {
+					alert('No web audio support in this browser!');
+				}
+				navigator.getUserMedia({
+					audio : true
+				}, startUserMedia, function(e) {
+					__log('No live audio input: ' + e);
+				});
+			};
+			function findPitch(audioBuffer) {
+				console.log(audioBuffer);
+				/* Create a new pitch detector */
+				var pitch = new PitchAnalyzer(4096);
+				/* Copy samples to the internal buffer */
+				pitch.input(audioBuffer);
+				/* Process the current input in the internal buffer */
+				pitch.process();
+				var tone = pitch.findTone();
+				if (tone === null) {
+					console.log('No tone found!');
+				} else {
+					console.log('Found a tone, frequency:', tone.freq, 'volume:', tone.db);
+				}
+			}
+		</script>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+		<script src="recorder.js"></script>
+		<script src="pitch.js"></script>
+		<script src="fft.js/lib/complex.js"></script>
+		
+	</body>
+</html>
