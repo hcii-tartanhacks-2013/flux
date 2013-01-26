@@ -40,19 +40,20 @@
 		</button>
 		<ul id="recordingslist"></ul>
 		<pre id="log"></pre>
-				<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 		<script src="wordTools.js"></script>
-
 		<script>
 			var config = {
+<<<<<<< HEAD
 				fontSizeFactor: 20,
 				wordLoudnessThreshold: 1.0,
 				discardPeakDelay: 5000, //ms
 				defaultSize: 0.4
+=======
+				fontSizeFactor : 0.1
+>>>>>>> final nancy
 			}
-
 			/* speech recognition part */
-
 			var pageOpenTime = Date.now();
 			var interim_transcript = '';
 			var final_transcript = '';
@@ -60,103 +61,85 @@
 			var ignore_onend;
 			var start_timestamp;
 			if (!('webkitSpeechRecognition' in window)) {
-			  alert('sorry, your browser does not support speech recognition');
+				alert('sorry, your browser does not support speech recognition');
 			} else {
-			  var recognition = new webkitSpeechRecognition();
-			  recognition.continuous = true;
-			  recognition.interimResults = true;
-
-			  recognition.onstart = function() {
-			    recognizing = true;
-			  };
-
-			  recognition.onerror = function(event) {
-			    console.log('error', event.error)
-			    if (event.error == 'no-speech') {
-			      ignore_onend = true;
-			    }
-			    if (event.error == 'audio-capture') {
-			      ignore_onend = true;
-			    }
-			    if (event.error == 'not-allowed') {
-			      if (event.timeStamp - start_timestamp < 100) {
-			      } else {
-			      }
-			      ignore_onend = true;
-			    }
-			  };
-
-			  recognition.onend = function() {
-			    console.log('onEnd');
-			    recognizing = false;
-			    if (ignore_onend) {
-			      return;
-			    }
-			    if (!final_transcript) {
-			      return;
-			    }
-			  };
-
-			  recognition.onresult = function(event) {
-			    var interim_transcript = '';
-			    for (var i = event.resultIndex; i < event.results.length; ++i) {
-			      if (event.results[i].isFinal) {
-			        final_transcript += event.results[i][0].transcript;
-			        console.log('final', final_transcript, event.timeStamp - pageOpenTime);
-			        addWords(event.results[i][0].transcript);
-			      } else {
-			        interim_transcript += event.results[i][0].transcript;
-			        console.log('interim', interim_transcript, event.timeStamp - pageOpenTime);
-			        //addWords(event.results[i][0].transcript);
-			      }
-			    }
-			    final_transcript = wordTools.capitalize(final_transcript);
-			    showTTSResults()
-
-			  };
+				var recognition = new webkitSpeechRecognition();
+				recognition.continuous = true;
+				recognition.interimResults = true;
+				recognition.onstart = function() {
+					recognizing = true;
+				};
+				recognition.onerror = function(event) {
+					console.log('error', event.error)
+					if (event.error == 'no-speech') {
+						ignore_onend = true;
+					}
+					if (event.error == 'audio-capture') {
+						ignore_onend = true;
+					}
+					if (event.error == 'not-allowed') {
+						if (event.timeStamp - start_timestamp < 100) {
+						} else {
+						}
+						ignore_onend = true;
+					}
+				};
+				recognition.onend = function() {
+					console.log('onEnd');
+					recognizing = false;
+					if (ignore_onend) {
+						return;
+					}
+					if (!final_transcript) {
+						return;
+					}
+				};
+				recognition.onresult = function(event) {
+					var interim_transcript = '';
+					for (var i = event.resultIndex; i < event.results.length; ++i) {
+						if (event.results[i].isFinal) {
+							final_transcript += event.results[i][0].transcript;
+							console.log('final', final_transcript, event.timeStamp - pageOpenTime);
+							addWords(event.results[i][0].transcript);
+						} else {
+							interim_transcript += event.results[i][0].transcript;
+							console.log('interim', interim_transcript, event.timeStamp - pageOpenTime);
+							//addWords(event.results[i][0].transcript);
+						}
+					}
+					final_transcript = wordTools.capitalize(final_transcript);
+					showTTSResults()
+				};
 			}
-
 			var showTTSResults = function() {
 				//final_span.innerHTML = linebreak(final_transcript);
-		    //interim_span.innerHTML = linebreak(interim_transcript);
+				//interim_span.innerHTML = linebreak(interim_transcript);
 			}
-
-
 			function startRecognition() {
-			  if (recognizing) {
-			    recognition.stop();
-			    return;
-			  }
-			  final_transcript = '';
-			  recognition.start();
-			  ignore_onend = false;
-			  //final_span.innerHTML = '';
-			  //interim_span.innerHTML = '';
-			  start_timestamp = new Date();
+				if (recognizing) {
+					recognition.stop();
+					return;
+				}
+				final_transcript = '';
+				recognition.start();
+				ignore_onend = false;
+				//final_span.innerHTML = '';
+				//interim_span.innerHTML = '';
+				start_timestamp = new Date();
 			}
-
-
-
-
-
-
-
-
 
 			/* audio analysis part */
-
 			var exampleWord = {
-				content: 'content',
-				syllables: 2,
-				duration: 1234, //ms
-				loudness: 64,
-				startTime: 0
+				content : 'content',
+				syllables : 2,
+				duration : 1234, //ms
+				loudness : 64,
+				startTime : 0
 			}
 			var words = [];
 			//var syllableCounts = [];
 			//var naverages = [];
 			var soundBufferLength = 0;
-
 			function replay(button) {
 				if ( typeof soundSource != 'undefined') {
 					$('div').hide();
@@ -174,7 +157,6 @@
 
 			var audio_context;
 			var recorder;
-
 			function startUserMedia(stream) {
 				var input = audio_context.createMediaStreamSource(stream);
 				//console.log('Media stream created.');
@@ -304,7 +286,6 @@
 			function amplitude(soundArray) {
 				// get total number of syllableCounts
 				var syllableCountsTotal = getTotalSyllableCount();
-
 				// get size of a chunk of soundArray by dividing soundArray into syllableCounts
 				var syllableArraySize = soundArray.length / syllableCountsTotal;
 				var wordStart = 0;
@@ -333,6 +314,7 @@
 			var loudnessQueue = [];
 
 			var getLoudness = function(word, duration, starttime) {
+<<<<<<< HEAD
 				//console.log()
 				var result;
 				if (loudnessQueue.length > 0) {
@@ -343,49 +325,118 @@
 
 				console.log('shifted', result, 'from queue:', loudnessQueue);
 				return result;
+=======
+				return Math.random() * 1000 + 14;
+>>>>>>> final nancy
 			}
-
 			var addWord = function(wordString) {
 				var now = new Date();
 				var loudnessAverage = getLoudness(wordString, 200, now);
 				var word = {
-						content: wordString,
-						startTime: now,
-						syllables: wordTools.countSyllables(wordString),
-						duration: -1,
-						loudness: loudnessAverage
-					};
+					content : wordString,
+					startTime : now,
+					syllables : wordTools.countSyllables(wordString),
+					duration : -1,
+					loudness : loudnessAverage
+				};
 				words.push(word);
+<<<<<<< HEAD
 				console.log('new word, loudness:', word.loudness);
 				$('body').append("<div class=\"floating\" style=\"font-size: " + (10 + word.loudness * config.fontSizeFactor) + "px\">" + word.content + "</div>");
 
+=======
+				var classs = animateStyle(word);
+				var color= randomcolor();
+				$('body').append("<div class=\"floating animated " + classs + "\" style=\"color:" + color +";font-size: " + word.loudness * config.fontSizeFactor + "px\">" + word.content + "</div>");
+			}
+			function animateStyle(w) {
+				if (w.loudness > 10) {
+					var choice = Math.round(Math.random() * 3);
+					switch (choice) {
+						case 0:
+							return "wobble";
+							break;
+						case 1:
+							return "bounce";
+							break;
+						case 2:
+							return "pulse";
+							break;
+						case 3:
+							return "flash";
+							break;
+						case 4:
+							return "tada";
+							break;
+					}
+				}
+				else {
+					var choice = Math.round(Math.random() * 4);
+					switch (choice) {
+						case 0:
+							return "fadeIn";
+							break;
+						case 1:
+							return "fadeInDown";
+							break;
+						case 2:
+							return "fadeInRight";
+							break;
+						case 3:
+							return "fadeInUpBig";
+							break;
+						case 4:
+							return "flipInY";
+							break;
+						case 5:
+							return "rollIn";
+							break;
+					}
+				}
+>>>>>>> final nancy
 			}
 
+function randomcolor() {
+					var choice = Math.round(Math.random() * 3);
+					switch (choice) {
+						case 0:
+							return "white";
+							break;
+						case 1:
+							return "#06a19f";
+							break;
+						case 2:
+							return "#FE4365";
+							break;
+							case 3:
+							return "white";
+							break;
+						}
+					}
+					
+					
 			var addWords = function(words) {
-				words.split(' ').forEach(function(word){
+				words.split(' ').forEach(function(word) {
 					addWord(word);
 				});
 			}
-
-			var getTotalSyllableCount = function(){
+			var getTotalSyllableCount = function() {
 				var sum = 0;
-				words.forEach(function(word){
+				words.forEach(function(word) {
 					sum += word.syllableCounts;
 				});
 				return sum;
 			}
-
 			/*
-			function showWords() {
-				var i = 0;
-				setInterval(function() {
-					if (i < words.length) {
-						addWord(words[i]);
-						i++;
-					}
-				}, 150);
-			}*/
-
+			 function showWords() {
+			 var i = 0;
+			 setInterval(function() {
+			 if (i < words.length) {
+			 addWord(words[i]);
+			 i++;
+			 }
+			 }, 150);
+			 }*/
 			window.onload = function init() {
 				try {
 					window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -420,21 +471,9 @@
 					console.log('Found a tone, frequency:', tone.freq, 'volume:', tone.db);
 				}
 			}
-
-
-
-
-
-
-
-
-
-
-
 		</script>
 		<script src="recorder.js"></script>
 		<script src="pitch.js"></script>
 		<script src="fft.js/lib/complex.js"></script>
-
 	</body>
 </html>
