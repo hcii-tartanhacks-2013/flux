@@ -31,18 +31,40 @@
 		<button onclick="stopRecording(this);" disabled>
 			stop
 		</button>
+		<button onclick="replay(this);" disabled>
+			replay
+		</button>
+		<button onclick="clearScreen(this);" disabled>
+			clear
+		</button>
 		<ul id="recordingslist"></ul>
 		<pre id="log"></pre>
 		<script>
-			var words = ["Color", "my", "life", "with", "the", "chaos", "of", "trouble."];
+			var words = ["Characteristics","Color", "my", "life", "with", "the", "chaos", "of", "trouble."];
 			var syllables = [];
+			var naverages = [];
 			var seconds = 0;
-			for(var i=0; i<words.length; i++) {
+			for (var i = 0; i < words.length; i++) {
 				syllables[i] = countSyllables(words[i]);
 				//console.log(words[i]+" "+syllables[i]);
 			}
 			function __log(e, data) {
 				//log.innerHTML += "\n" + e + " " + (data || '');
+			}
+
+			function replay(button) {
+				if ( typeof soundSource != 'undefined') {
+					$('div').hide();
+				}
+				showWords();
+			}
+
+			function clearScreen(button) {
+				if ( typeof soundSource != 'undefined') {
+					$('div').remove();
+				}
+				button.disabled = true;
+				button.previousElementSibling.disabled = true;				
 			}
 
 			var audio_context;
@@ -81,6 +103,8 @@
 				recorder && recorder.stop();
 				button.disabled = true;
 				button.previousElementSibling.disabled = false;
+				button.nextElementSibling.disabled = false;
+				button.nextElementSibling.nextElementSibling.disabled = false;
 				__log('Stopped recording.');
 				// create WAV download link using audio data blob
 				createDownloadLink();
@@ -123,13 +147,10 @@
 				soundSource.buffer = soundBuffer;
 				findPitch(soundBuffer);
 				soundArray = soundBuffer.getChannelData(0);
-				
-				//  44100 counts = 1 sec 
-				seconds = parseInt(soundArray.length/44100);
-				
+				//  44100 counts = 1 sec
+				seconds = parseInt(soundArray.length / 44100);
 				amplitude(soundArray);
 			}
-			
 
 			function amplitude(soundArray) {
 				// get total number of syllables
@@ -156,18 +177,20 @@
 					}
 					var average = sum / wordArray.length;
 					// normalize average
-					var naverage = average * 10000 + 16;
-					//console.log(word + " " + naverage);
-					$('body').append("<div id=\"word"+i+"\" class=\"floating animated bounceInRight\" style=\"font-size: " + naverage + "px\; padding: 0 10px 0 0\">" + word + "</div>");
-					$('word'+i).hide();
+					naverages[i] = average * 10000 + 16;
 				}
+				showWords();
 			}
-			
-			/*function showWords() {
-				for(var i=0; i<words.length; i++) {
-					$('#word'+i).delay(5000).addClass("animated bounceInRight").show();
-				}
-			}*/
+
+			function showWords() {
+				var i = 0;
+				setInterval(function() {
+					if (i < words.length) {
+						$('body').append("<div class=\"floating \" style=\"font-size: " + naverages[i] + "px\; padding: 0 10px 0 0\">" + words[i] + "</div>");
+						i++;
+					}
+				}, 150);
+			}
 
 
 			window.onload = function init() {
