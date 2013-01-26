@@ -15,10 +15,10 @@ body { /* Addresses a small issue in webkit: http://bit.ly/NEdoDq */
 	-webkit-backface-visibility: hidden;
 }
 .animated{
-	-webkit-animation-duration: 1s;
-	   -moz-animation-duration: 1s;
-	     -o-animation-duration: 1s;
-	        animation-duration: 1s;
+	-webkit-animation-duration: 0.1s;
+	   -moz-animation-duration: 0.1s;
+	     -o-animation-duration: 0.1s;
+	        animation-duration: 0.1s;
 	-webkit-animation-fill-mode: both;
 	   -moz-animation-fill-mode: both;
 	     -o-animation-fill-mode: both;
@@ -245,6 +245,10 @@ body { /* Addresses a small issue in webkit: http://bit.ly/NEdoDq */
 	-moz-animation-name: wobble;
 	-o-animation-name: wobble;
 	animation-name: wobble;
+	-webkit-animation-duration: 0.1s;
+	   -moz-animation-duration: 0.1s;
+	     -o-animation-duration: 0.1s;
+	        animation-duration: 0.1s;
 }
 /* originally authored by Nick Pettit - https://github.com/nickpettit/glide */
 
