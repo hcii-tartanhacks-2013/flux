@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Live input record and playback</title>
+		<link rel="stylesheet" type="text/css" href="../../css/animate.css" media="screen" />
+		<style type='text/css'>
+			body {
+				background-color: black;
+			}
+			ul {
+				list-style: none;
+			}
+			#recordingslist audio {
+				display: block;
+				margin-bottom: 10px;
+			}
+			.floating {
+				float: left;
+				line-height: 0.8em;
+			}
+			div {
+				color: white;
+			}
+		</style>
+	</head>
+	<body>
+		<button onclick="startRecording(this);">
+			record
+		</button>
+		<button onclick="stopRecording(this);" disabled>
+			stop
+		</button>
+		<ul id="recordingslist"></ul>
+		<pre id="log"></pre>
+				<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+		<script src="wordTools.js"></script>
+
+		<script>
+
+			var config = {
+				fontSizeFactor: 0.2
+			}
+
+			/* speech recognition part */
+
+			var pageOpenTime = Date.now();
+			var interim_transcript = '';
+			var final_transcript = '';
+			var recognizing = false;
+			var ignore_onend;
+			var start_timestamp;
+			if (!('webkitSpeechRecognition' in window)) {
+			  alert('sorry, your browser does not support speech recognition');
+			} else {
+			  var recognition = new webkitSpeechRecognition();
+			  recognition.continuous = true;
+			  recognition.interimResults = true;
+
+			  recognition.onstart = function() {
+			    recognizing = true;
+			  };
+
+			  recognition.onerror = function(event) {
+			    console.log('error', event.error)
+			    if (event.error == 'no-speech') {
+			      ignore_onend = true;
+			    }
+			    if (event.error == 'audio-capture') {
+			      ignore_onend = true;
+			    }
+			    if (event.error == 'not-allowed') {
+			      if (event.timeStamp - start_timestamp < 100) {
+			      } else {
+			      }
+			      ignore_onend = true;
+			    }
+			  };
+
+			  recognition.onend = function() {
+			    console.log('onEnd');
+			    recognizing = false;
+			    if (ignore_onend) {
+			      return;
+			    }
+			    if (!final_transcript) {
+			      return;
+			    }
+			  };
+
+			  recognition.onresult = function(event) {
+			    var interim_transcript = '';
+			    for (var i = event.resultIndex; i < event.results.length; ++i) {
+			      if (event.results[i].isFinal) {
+			        final_transcript += event.results[i][0].transcript;
+			        console.log('final', final_transcript, event.timeStamp - pageOpenTime);
+			      } else {
+			        interim_transcript += event.results[i][0].transcript;
+			        console.log('interim', interim_transcript, event.timeStamp - pageOpenTime);
+			      }
+			    }
+			    final_transcript = wordTools.capitalize(final_transcript);
+			    showTTSResults()
+
+			  };
+			}
+
+			var showTTSResults = function() {
+				//final_span.innerHTML = linebreak(final_transcript);
+		    //interim_span.innerHTML = linebreak(interim_transcript);
+			}
+
+
+			function startRecognition() {
+			  if (recognizing) {
+			    recognition.stop();
+			    return;
+			  }
+			  final_transcript = '';
+			  recognition.start();
+			  ignore_onend = false;
+			  //final_span.innerHTML = '';
+			  //interim_span.innerHTML = '';
+			  start_timestamp = new Date();
+			}
+
+
+
+
+
+
+
+
+
+			/* audio analysis part */
+
+
+			var words = ["Color", "my", "life", "with", "the", "chaos", "of", "trouble."];
+			var syllables = [];
+			var seconds = 0;
+			for(var i=0; i<words.length; i++) {
+				syllables[i] = wordTools.countSyllables(words[i]);
+				//console.log(words[i]+" "+syllables[i]);
+			}
+			function __log(e, data) {
+				console.log('log', e, data);
+				//log.innerHTML += "\n" + e + " " + (data || '');
+			}
+
+			var audio_context;
+			var recorder;
+
+			function startUserMedia(stream) {
+				var input = audio_context.createMediaStreamSource(stream);
+				__log('Media stream created.');
+				input.connect(audio_context.destination);
+				__log('Input connected to audio context destination.');
+				recorder = new Recorder(input);
+				__log('Recorder initialised.');
+			}
+
+			function startRecording(button) {
+				recorder && recorder.record();
+				button.disabled = true;
+				button.nextElementSibling.disabled = false;
+				__log('Recording...');
+				startRecognition()
+			}
+
+			function stopRecording(button) {
+				recorder && recorder.stop();
+				button.disabled = true;
+				button.previousElementSibling.disabled = false;
+				__log('Stopped recording.');
+				// create WAV download link using audio data blob
+				createDownloadLink();
+				recorder.clear();
+			}
+
+			function createDownloadLink() {
+				recorder && recorder.exportWAV(function(blob) {
+					var url = URL.createObjectURL(blob);
+					/*var li = document.createElement('li');
+					var au = document.createElement('audio');
+					var hf = document.createElement('a');
+					au.controls = true;
+					au.src = url;
+					hf.href = url;
+					hf.download = new Date().toISOString() + '.wav';
+					hf.innerHTML = hf.download;
+					li.appendChild(au);
+					li.appendChild(hf);
+					recordingslist.appendChild(li);*/
+					// get arraybuffer
+					var request = new XMLHttpRequest();
+					request.open("GET", url, true);
+					request.responseType = "arraybuffer";
+					// Our asynchronous callback
+					request.onload = function() {
+						var audioData = request.response;
+						//console.log(audioData);
+						audioGraph(audioData);
+					}
+					request.send();
+				});
+			}
+
+			function audioGraph(audioData) {
+				var volumeNode, lowPassFilter;
+				// Same setup as before
+				soundSource = audio_context.createBufferSource();
+				soundBuffer = audio_context.createBuffer(audioData, true);
+				soundSource.buffer = soundBuffer;
+				findPitch(soundBuffer);
+				soundArray = soundBuffer.getChannelData(0);
+
+				console.log(soundSource, soundBuffer, soundArray);
+
+				//  44100 counts = 1 sec
+				seconds = parseInt(soundArray.length/44100);
+
+				amplitude(soundArray);
+			}
+
+
+			function amplitude(soundArray) {
+				// get total number of syllables
+				var syllablesTotal = 0;
+				for (var i = 0; i < syllables.length; i++)
+					syllablesTotal = syllablesTotal + syllables[i];
+				// get size of a chunk of soundArray by dividing soundArray into syllables
+				var syllableArraySize = soundArray.length / syllablesTotal;
+				var wordStart = 0;
+				// loop through soundArray to process each part
+				for (var i = 0; i < words.length; i++) {
+					// get length of chunk
+					var word = words[i];
+					var wordArraySize = syllableArraySize * syllables[i];
+					// wordArraySize is about 10000 - 25000 for like 3-10 seconds
+					// get the chunk of soundArray for this word
+					var wordArray = soundArray.subarray(wordStart, wordStart + wordArraySize);
+					wordStart = wordStart + wordArraySize;
+					//console.log(word+" "+wordArray.length + " starting from "+wordStart);
+					// get the average of this array
+					var sum = 0;
+					for (var j = 0; j < wordArray.length; j++) {
+						sum = sum + Math.abs(wordArray[j]);
+					}
+					var average = sum / wordArray.length;
+					// normalize average
+					var naverage = average * 10000 + 16;
+					//console.log(word + " " + naverage);
+					$('body').append("<div id=\"word"+i+"\" class=\"floating animated bounceInRight\" style=\"font-size: " + naverage * config.fontSizeFactor + "px\; padding: 0 10px 0 0\">" + word + "</div>");
+					$('word'+i).hide();
+				}
+			}
+
+			/*function showWords() {
+				for(var i=0; i<words.length; i++) {
+					$('#word'+i).delay(5000).addClass("animated bounceInRight").show();
+				}
+			}*/
+
+
+			window.onload = function init() {
+				try {
+					// webkit shim
+					window.AudioContext = window.AudioContext || window.webkitAudioContext;
+					navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+					window.URL = window.URL || window.webkitURL;
+					audio_context = new AudioContext;
+					__log('Audio context set up.');
+					__log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+				} catch (e) {
+					alert('No web audio support in this browser!');
+				}
+				navigator.getUserMedia({
+					audio : true
+				}, startUserMedia, function(e) {
+					__log('No live audio input: ' + e);
+				});
+			};
+			function findPitch(audioBuffer) {
+				//console.log(audioBuffer);
+				/* Create a new pitch detector */
+				var pitch = new PitchAnalyzer(4096);
+				/* Copy samples to the internal buffer */
+				pitch.input(audioBuffer);
+				/* Process the current input in the internal buffer */
+				pitch.process();
+				var tone = pitch.findTone();
+				if (tone === null) {
+					console.log('No tone found!');
+				} else {
+					console.log('Found a tone, frequency:', tone.freq, 'volume:', tone.db);
+				}
+			}
+
+
+
+
+
+
+
+
+
+
+
+		</script>
+		<script src="recorder.js"></script>
+		<script src="pitch.js"></script>
+		<script src="fft.js/lib/complex.js"></script>
+
+	</body>
+</html>
