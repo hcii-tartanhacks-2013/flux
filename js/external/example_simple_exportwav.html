@@ -29,7 +29,7 @@
 		<button onclick="startRecording(this);">
 			record
 		</button>
-		<button onclick="stopRecording(this);" disabled>
+		<button id="stopButton" onclick="stopRecording(this);" disabled>
 			stop
 		</button>
 		<button onclick="replay(this);" disabled>
@@ -47,8 +47,8 @@
 			var config = {
 				fontSizeFactor: 20,
 				wordLoudnessThreshold: 1.0,
-				discardPeakDelay: 5000, //ms
-				defaultSize: 0.4
+				discardPeakDelay: 4000, //ms
+				defaultSize: 0.8
 			}
 
 			/* speech recognition part */
@@ -89,6 +89,7 @@
 			  recognition.onend = function() {
 			    console.log('onEnd');
 			    recognizing = false;
+			   	stopRecording($('stopButton'));
 			    if (ignore_onend) {
 			      return;
 			    }
