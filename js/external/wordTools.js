@@ -1,6 +1,9 @@
 var wordTools = (function(){
 
     function countSyllables(word) {
+        if (word.match(/\*/gi) != null ) {
+            return 1;
+        }
         word = word.toLowerCase();
         //word.downcase!
         if (word.length <= 3) {
@@ -13,6 +16,8 @@ var wordTools = (function(){
         return word.match(/[aeiouy]{1,2}/g).length;
         //word.scan(/[aeiouy]{1,2}/).size
       }
+
+
 
     var two_line = /\n\n/g;
     var one_line = /\n/g;
