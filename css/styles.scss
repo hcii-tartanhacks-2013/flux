@@ -3,13 +3,14 @@
 //styles go here
 
 //color definitions
-$background: #e0e0e0;
+$backgroundColor: #e0e0e0;
 $text: #222;
 $highlight: #00FF00;
 
 
 body {
   color: $text;
+<<<<<<< HEAD
   background-color: $background;
 }
 
@@ -22,3 +23,23 @@ input[type="text"]
     background: transparent;
     border: none;
 }
+=======
+  background-color: $backgroundColor;
+  font-family:Helvetica,Arial,sans-serif;
+}
+
+@mixin cool-border {
+  $multiplier: 4;
+  border-bottom: (5px * $multiplier) solid $highlight;
+}
+
+.special {
+  color:red;
+  @include cool-border;
+}
+
+.superspecial {
+  color: blue;
+  @include cool-border;
+}
+>>>>>>> b98ab5ac1ddd11b850f6ce13f257437f5eec25d7

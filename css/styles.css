@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* line 17, ../../../../../../Applications/Scout.app/Contents/Resources/vendor/gems/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -79,3 +80,6 @@ input[type="text"] {
   background: transparent;
   border: none;
 }
+=======
+body{color:#222;background-color:#e0e0e0;font-family:Helvetica,Arial,sans-serif}.special{color:red;border-bottom:20px solid lime}.superspecial{color:blue;border-bottom:20px solid lime}
+>>>>>>> b98ab5ac1ddd11b850f6ce13f257437f5eec25d7
