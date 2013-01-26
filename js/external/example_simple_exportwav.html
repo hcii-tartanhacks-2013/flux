@@ -25,13 +25,32 @@
 		<pre id="log"></pre>
 		<script>
 			var words = ["Color", "my", "life", "with", "the", "chaos", "of", "trouble."];
-			var syllables = [2, 1, 1, 1, 1, 2, 1, 2];
+			var syllables = [];
+			var seconds = 0;
+			for(var i=0; i<words.length; i++) {
+				syllables[i] = countSyllables(words[i]);
+				//console.log(words[i]+" "+syllables[i]);
+			}
 			function __log(e, data) {
-				log.innerHTML += "\n" + e + " " + (data || '');
+				//log.innerHTML += "\n" + e + " " + (data || '');
 			}
 
 			var audio_context;
 			var recorder;
+			function countSyllables(word) {
+				word = word.toLowerCase();
+				//word.downcase!
+				if (word.length <= 3) {
+					return 1;
+				}//return 1 if word.length <= 3
+				word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+				//word.sub!(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '')
+				word = word.replace(/^y/, '');
+				//word.sub!(/^y/, '')
+				return word.match(/[aeiouy]{1,2}/g).length;
+				//word.scan(/[aeiouy]{1,2}/).size
+			}
+
 			function startUserMedia(stream) {
 				var input = audio_context.createMediaStreamSource(stream);
 				__log('Media stream created.');
@@ -61,7 +80,7 @@
 			function createDownloadLink() {
 				recorder && recorder.exportWAV(function(blob) {
 					var url = URL.createObjectURL(blob);
-					var li = document.createElement('li');
+					/*var li = document.createElement('li');
 					var au = document.createElement('audio');
 					var hf = document.createElement('a');
 					au.controls = true;
@@ -71,7 +90,7 @@
 					hf.innerHTML = hf.download;
 					li.appendChild(au);
 					li.appendChild(hf);
-					recordingslist.appendChild(li);
+					recordingslist.appendChild(li);*/
 					// get arraybuffer
 					var request = new XMLHttpRequest();
 					request.open("GET", url, true);
@@ -94,8 +113,13 @@
 				soundSource.buffer = soundBuffer;
 				findPitch(soundBuffer);
 				soundArray = soundBuffer.getChannelData(0);
+				
+				//  44100 counts = 1 sec 
+				seconds = parseInt(soundArray.length/44100);
+				
 				amplitude(soundArray);
 			}
+			
 
 			function amplitude(soundArray) {
 				// get total number of syllables
@@ -123,9 +147,21 @@
 					var average = sum / wordArray.length;
 					// normalize average
 					var naverage = average * 10000 + 20;
+					setInterval("showWords",3000);
 					//console.log(word + " " + naverage);
-					$('body').append("<div class=\"animated bounce\" style=\"font-size: " + naverage + "px\">" + word + "</div>");
+					
 				}
+			}
+			var wordLength=0;
+			function showWords() {
+				if(wordLength<words.length)
+				{
+				$('body').append("<span id=\"word"+i+"\" class=\"animated bounceInRight\" style=\"font-size: " + naverage + "px\; padding: 0 10px 0 0\">" + words[wordLength]+ "</span>");
+				wordLength++;
+		}
+				// for(var i=0; i<words.length; i++) {
+					// $('#word'+i).delay(5000).addClass("animated bounceInRight").show();
+				
 			}
 
 
@@ -167,6 +203,5 @@
 		<script src="recorder.js"></script>
 		<script src="pitch.js"></script>
 		<script src="fft.js/lib/complex.js"></script>
-		
 	</body>
 </html>
