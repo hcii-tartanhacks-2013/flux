@@ -5,12 +5,22 @@
 		<title>Live input record and playback</title>
 		<link rel="stylesheet" type="text/css" href="../../css/animate.css" media="screen" />
 		<style type='text/css'>
+			body {
+				background-color: black;
+			}
 			ul {
 				list-style: none;
 			}
 			#recordingslist audio {
 				display: block;
 				margin-bottom: 10px;
+			}
+			.floating {
+				float: left;
+				line-height: 0.8em;
+			}
+			div {
+				color: white;
 			}
 		</style>
 	</head>
@@ -146,23 +156,18 @@
 					}
 					var average = sum / wordArray.length;
 					// normalize average
-					var naverage = average * 10000 + 20;
-					setInterval("showWords",3000);
+					var naverage = average * 10000 + 16;
 					//console.log(word + " " + naverage);
-					
+					$('body').append("<div id=\"word"+i+"\" class=\"floating animated bounceInRight\" style=\"font-size: " + naverage + "px\; padding: 0 10px 0 0\">" + word + "</div>");
+					$('word'+i).hide();
 				}
 			}
-			var wordLength=0;
-			function showWords() {
-				if(wordLength<words.length)
-				{
-				$('body').append("<span id=\"word"+i+"\" class=\"animated bounceInRight\" style=\"font-size: " + naverage + "px\; padding: 0 10px 0 0\">" + words[wordLength]+ "</span>");
-				wordLength++;
-		}
-				// for(var i=0; i<words.length; i++) {
-					// $('#word'+i).delay(5000).addClass("animated bounceInRight").show();
-				
-			}
+			
+			/*function showWords() {
+				for(var i=0; i<words.length; i++) {
+					$('#word'+i).delay(5000).addClass("animated bounceInRight").show();
+				}
+			}*/
 
 
 			window.onload = function init() {
