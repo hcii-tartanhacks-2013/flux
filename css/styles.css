@@ -1,1 +1,48 @@
-body{color:#222;background-color:#e0e0e0;font-family:Helvetica,Arial,sans-serif}.special{color:red;border-bottom:20px solid lime}.superspecial{color:blue;border-bottom:20px solid lime}
+body {
+  color: #222222;
+  background-color: #e0e0e0;
+  font-family: Helvetica,Arial,sans-serif;
+}
+
+/* sample & random styles */
+.special {
+  color: red;
+  border-bottom: 20px solid lime;
+}
+
+.superspecial {
+  color: blue;
+  border-bottom: 20px solid lime;
+}
+
+/* site styles */
+#workspace {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 2em;
+  padding: 0.5em;
+  font-size: 28px;
+}
+#workspace ul#words li {
+  background-color: #ddddff;
+  float: left;
+  list-style: none;
+  margin-right: 0.5em;
+  padding: 0.1em;
+}
+#workspace ul#words li:hover {
+  cursor: pointer;
+}
+#workspace ul#words li.input {
+  color: blue;
+  background-color: transparent;
+}
+#workspace input#typer {
+  float: left;
+  background: transparent;
+  border: none;
+}
+#workspace input#typer:focus {
+  outline: none;
+}
