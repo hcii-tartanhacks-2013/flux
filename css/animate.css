@@ -15,10 +15,10 @@ body { /* Addresses a small issue in webkit: http://bit.ly/NEdoDq */
 	-webkit-backface-visibility: hidden;
 }
 .animated{
-	-webkit-animation-duration: 1s;
-	   -moz-animation-duration: 1s;
-	     -o-animation-duration: 1s;
-	        animation-duration: 1s;
+	-webkit-animation-duration: 0.1s;
+	   -moz-animation-duration: 0.1s;
+	     -o-animation-duration: 0.1s;
+	        animation-duration: 0.1s;
 	-webkit-animation-fill-mode: both;
 	   -moz-animation-fill-mode: both;
 	     -o-animation-fill-mode: both;
@@ -3260,4 +3260,12 @@ body { /* Addresses a small issue in webkit: http://bit.ly/NEdoDq */
     -moz-animation-duration: 0.75s;
     -o-animation-duration: 0.75s;
     animation-duration: 0.75s;
+}
+
+.rotate{
+	-webkit-transform: rotate(-90deg);	
+    -moz-transform: rotate(-90deg);	
+    -o-transform: rotate(-90deg);
+	-o-transform: rotate(-90deg);	
+}
 }
