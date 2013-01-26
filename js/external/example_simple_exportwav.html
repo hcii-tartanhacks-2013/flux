@@ -18,6 +18,7 @@
 			.floating {
 				float: left;
 				line-height: 0.8em;
+				padding: 0 10px 0 0;
 			}
 			div {
 				color: white;
@@ -44,7 +45,7 @@
 
 		<script>
 			var config = {
-				fontSizeFactor: 0.2
+				fontSizeFactor: 0.1
 			}
 
 			/* speech recognition part */
@@ -99,9 +100,11 @@
 			      if (event.results[i].isFinal) {
 			        final_transcript += event.results[i][0].transcript;
 			        console.log('final', final_transcript, event.timeStamp - pageOpenTime);
+			        addWords(event.results[i][0].transcript);
 			      } else {
 			        interim_transcript += event.results[i][0].transcript;
 			        console.log('interim', interim_transcript, event.timeStamp - pageOpenTime);
+			        //addWords(event.results[i][0].transcript);
 			      }
 			    }
 			    final_transcript = wordTools.capitalize(final_transcript);
@@ -139,25 +142,23 @@
 
 			/* audio analysis part */
 
-
-			var words = ["Characteristics","Color", "my", "life", "with", "the", "chaos", "of", "trouble."];
-			var syllables = [];
-			var naverages = [];
-			var seconds = 0;
-			for (var i = 0; i < words.length; i++) {
-				syllables[i] = wordTools.countSyllables(words[i]);
-				//console.log(words[i]+" "+syllables[i]);
+			var exampleWord = {
+				content: 'content',
+				syllables: 2,
+				duration: 1234, //ms
+				loudness: 64,
+				startTime: 0
 			}
-			function __log(e, data) {
-				console.log('log', e, data);
-				//log.innerHTML += "\n" + e + " " + (data || '');
-			}
+			var words = [];
+			//var syllableCounts = [];
+			//var naverages = [];
+			var soundBufferLength = 0;
 
 			function replay(button) {
 				if ( typeof soundSource != 'undefined') {
 					$('div').hide();
 				}
-				showWords();
+				//showWords();
 			}
 
 			function clearScreen(button) {
@@ -173,18 +174,18 @@
 
 			function startUserMedia(stream) {
 				var input = audio_context.createMediaStreamSource(stream);
-				__log('Media stream created.');
+				console.log('Media stream created.');
 				input.connect(audio_context.destination);
-				__log('Input connected to audio context destination.');
+				console.log('Input connected to audio context destination.');
 				recorder = new Recorder(input);
-				__log('Recorder initialised.');
+				console.log('Recorder initialised.');
 			}
 
 			function startRecording(button) {
 				recorder && recorder.record();
 				button.disabled = true;
 				button.nextElementSibling.disabled = false;
-				__log('Recording...');
+				console.log('Recording...');
 				startRecognition()
 			}
 
@@ -194,7 +195,7 @@
 				button.previousElementSibling.disabled = false;
 				button.nextElementSibling.disabled = false;
 				button.nextElementSibling.nextElementSibling.disabled = false;
-				__log('Stopped recording.');
+				console.log('Stopped recording.');
 				// create WAV download link using audio data blob
 				createDownloadLink();
 				recorder.clear();
@@ -238,23 +239,22 @@
 				soundArray = soundBuffer.getChannelData(0);
 				console.log(soundSource, soundBuffer, soundArray);
 				//  44100 counts = 1 sec
-				seconds = parseInt(soundArray.length / 44100);
+				soundBufferLength = parseInt(soundArray.length / 44100);
 				amplitude(soundArray);
 			}
 
 			function amplitude(soundArray) {
-				// get total number of syllables
-				var syllablesTotal = 0;
-				for (var i = 0; i < syllables.length; i++)
-					syllablesTotal = syllablesTotal + syllables[i];
-				// get size of a chunk of soundArray by dividing soundArray into syllables
-				var syllableArraySize = soundArray.length / syllablesTotal;
+				// get total number of syllableCounts
+				var syllableCountsTotal = getTotalSyllableCount();
+
+				// get size of a chunk of soundArray by dividing soundArray into syllableCounts
+				var syllableArraySize = soundArray.length / syllableCountsTotal;
 				var wordStart = 0;
 				// loop through soundArray to process each part
 				for (var i = 0; i < words.length; i++) {
 					// get length of chunk
-					var word = words[i];
-					var wordArraySize = syllableArraySize * syllables[i];
+					var word = words[i].word;
+					var wordArraySize = syllableArraySize * syllableCounts[i];
 					// wordArraySize is about 10000 - 25000 for like 3-10 seconds
 					// get the chunk of soundArray for this word
 					var wordArray = soundArray.subarray(wordStart, wordStart + wordArraySize);
@@ -267,20 +267,55 @@
 					}
 					var average = sum / wordArray.length;
 					// normalize average
-					naverages[i] = average * 10000 + 16;
+					word.loudness = average * 10000 + 16;
 				}
-				showWords();
+				//showWords();
 			}
 
+			var getLoudness = function(word, duration, starttime) {
+				return Math.random() * 1000;
+			}
+
+			var addWord = function(wordString) {
+				var now = new Date();
+				var loudnessAverage = getLoudness(wordString, 200, now);
+				var word = {
+						content: wordString,
+						startTime: now,
+						syllables: wordTools.countSyllables(wordString),
+						duration: -1,
+						loudness: loudnessAverage
+					};
+				words.push(word);
+
+				$('body').append("<div class=\"floating\" style=\"font-size: " + word.loudness * config.fontSizeFactor + "px\">" + word.content + "</div>");
+
+			}
+
+			var addWords = function(words) {
+				words.split(' ').forEach(function(word){
+					addWord(word);
+				});
+			}
+
+			var getTotalSyllableCount = function(){
+				var sum = 0;
+				words.forEach(function(word){
+					sum += word.syllableCounts;
+				});
+				return sum;
+			}
+
+			/*
 			function showWords() {
 				var i = 0;
 				setInterval(function() {
 					if (i < words.length) {
-						$('body').append("<div class=\"floating \" style=\"font-size: " + naverages[i] + "px\; padding: 0 10px 0 0\">" + words[i] + "</div>");
+						addWord(words[i]);
 						i++;
 					}
 				}, 150);
-			}
+			}*/
 
 			window.onload = function init() {
 				try {
@@ -289,15 +324,15 @@
 					navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
 					window.URL = window.URL || window.webkitURL;
 					audio_context = new AudioContext;
-					__log('Audio context set up.');
-					__log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+					console.log('Audio context set up.');
+					console.log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
 				} catch (e) {
 					alert('No web audio support in this browser!');
 				}
 				navigator.getUserMedia({
 					audio : true
 				}, startUserMedia, function(e) {
-					__log('No live audio input: ' + e);
+					console.log('No live audio input: ' + e);
 				});
 			};
 			function findPitch(audioBuffer) {
